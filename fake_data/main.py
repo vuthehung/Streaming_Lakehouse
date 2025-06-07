@@ -1,63 +1,90 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import random
 
-# Thiết lập tham số
-start_time = datetime(2023, 10, 1, 9, 0, 0)  # 9:00 AM
-end_time = datetime(2023, 10, 1, 16, 0, 0)   # 4:00 PM
-time_interval = timedelta(minutes=1)
-stock_symbol = 'AAPL'
-initial_price = 150.0
-price_volatility = 0.5  # Biến động giá mỗi phút
-transactions_per_minute = (0, 10)  # Số giao dịch mỗi phút
-quantity_range = (1, 100)  # Số lượng cổ phiếu mỗi giao dịch
+# current_date = datetime.now()
+current_year = 2025
+current_month = 6
+current_day = 8
 
-# Tạo danh sách thời gian
-times = []
-current_time = start_time
-while current_time < end_time:
-    times.append(current_time)
-    current_time += time_interval
+start_date = datetime(current_year, current_month, current_day, 9, 30)
+end_date = datetime(current_year, current_month, current_day, 16, 0)
+trading_seconds = int((end_date - start_date).total_seconds())
 
-# Mô phỏng giá cổ phiếu (random walk)
-prices = [initial_price]
-for _ in range(1, len(times)):
-    price_change = np.random.uniform(-price_volatility, price_volatility)
-    new_price = prices[-1] + price_change
-    prices.append(max(0, new_price))  # Giá không âm
+stock_info = {
+    'AAPL': {'exchange': 'NASDAQ', 'base_price': 150},
+    'MSFT': {'exchange': 'NASDAQ', 'base_price': 300},
+    'GOOGL': {'exchange': 'NASDAQ', 'base_price': 2800},
+    'AMZN': {'exchange': 'NASDAQ', 'base_price': 3500},
+    'TSLA': {'exchange': 'NASDAQ', 'base_price': 700},
+    'FB': {'exchange': 'NASDAQ', 'base_price': 330},
+    'NVDA': {'exchange': 'NASDAQ', 'base_price': 200},
+    'PYPL': {'exchange': 'NASDAQ', 'base_price': 250},
+    'ADBE': {'exchange': 'NASDAQ', 'base_price': 600},
+    'NFLX': {'exchange': 'NASDAQ', 'base_price': 500},
+    'BRK.B': {'exchange': 'NYSE', 'base_price': 280},
+    'JNJ': {'exchange': 'NYSE', 'base_price': 170},
+    'V': {'exchange': 'NYSE', 'base_price': 220},
+    'WMT': {'exchange': 'NYSE', 'base_price': 140},
+    'PG': {'exchange': 'NYSE', 'base_price': 140},
+    'DIS': {'exchange': 'NYSE', 'base_price': 180},
+    'MA': {'exchange': 'NYSE', 'base_price': 350},
+    'KO': {'exchange': 'NYSE', 'base_price': 55},
+    'PEP': {'exchange': 'NYSE', 'base_price': 150},
+    'MCD': {'exchange': 'NYSE', 'base_price': 250},
+}
 
-# Tạo dữ liệu giao dịch
-data = []
-for t, p in zip(times, prices):
-    num_transactions = np.random.randint(transactions_per_minute[0], transactions_per_minute[1] + 1)
-    for _ in range(num_transactions):
-        quantity = np.random.randint(quantity_range[0], quantity_range[1] + 1)
-        order_type = np.random.choice(['buy', 'sell'])
-        exchange = np.random.choice(['NASDAQ', 'NYSE'])
-        transaction_id = f'tx_{np.random.randint(1000000, 9999999)}'
-        record = {
-            'transaction_id': transaction_id,
-            'timestamp': t.strftime('%Y-%m-%d %H:%M:%S'),
-            'stock_symbol': stock_symbol,
-            'price': round(p, 2),
-            'quantity': quantity,
-            'order_type': order_type,
-            'exchange': exchange
-        }
-        data.append(record)
 
-# Tạo DataFrame
-df = pd.DataFrame(data)
+time_points = pd.date_range(start=start_date, end=end_date, freq='min')
+daily_base_prices = {}
+for stock in stock_info:
+    prices = [stock_info[stock]['base_price']]
+    for _ in range(1, len(time_points)):
+        minute_return = random.uniform(-0.005, 0.005)  # ±0.5% change per minute
+        new_price = prices[-1] * (1 + minute_return)
+        prices.append(round(new_price, 2))
+    daily_base_prices[stock] = prices
+
+
+num_records = 10000
+records = []
+transaction_counter = 1
+
+for _ in range(num_records):
+    # Select a random time within market hours
+    random_seconds = random.randint(0, trading_seconds)
+    timestamp = start_date + timedelta(seconds=random_seconds)
+
+    # Select a random stock and assign transaction details
+    stock_symbol = random.choice(list(stock_info.keys()))
+    # Find closest minute index for price
+    minute_index = min(range(len(time_points)), key=lambda i: abs(time_points[i] - timestamp))
+    base_price = daily_base_prices[stock_symbol][minute_index]
+    price = base_price * (1 + random.uniform(-0.01, 0.01))  # ±1% variation
+    price = round(price, 2)
+    quantity = random.randint(1, 1000)
+    order_type = random.choice(['buy', 'sell'])
+    exchange = stock_info[stock_symbol]['exchange']
+    transaction_id = f'tx_{transaction_counter:07d}'
+    transaction_counter += 1
+
+    # Create record
+    record = {
+        'transaction_id': transaction_id,
+        'timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+        'stock_symbol': stock_symbol,
+        'price': price,
+        'quantity': quantity,
+        'order_type': order_type,
+        'exchange': exchange,
+    }
+    records.append(record)
+
+
+df = pd.DataFrame(records)
 df['timestamp'] = pd.to_datetime(df['timestamp'])
+df = df.sort_values('timestamp').reset_index(drop=True)
 
-# Tính volume cho mỗi phút
-df['minute'] = df['timestamp'].dt.floor('min')  # Thay 'T' bằng 'min'
-volume_per_minute = df.groupby('minute')['quantity'].sum().reset_index()
-volume_per_minute.columns = ['timestamp', 'volume']
 
-# Thêm volume vào dữ liệu
-df = df.merge(volume_per_minute, on='timestamp', how='left')
-
-# Lưu dữ liệu vào CSV
-df.to_csv('stock_transactions_2023_10_01.csv', index=False)
-print("Đã tạo file stock_transactions_2023_10_01.csv")
+df.to_csv(f'../flask/data/stock_transactions_{current_year}_{current_month}_{current_day}.csv', index=False)

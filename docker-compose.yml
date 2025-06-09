@@ -1,4 +1,12 @@
 services:
+  flask:
+    container_name: flask
+    hostname: flask
+    image: flask
+    networks:
+      vdt_net:
+    ports:
+      - 5000:5000
   broker:
     container_name: broker
     hostname: broker

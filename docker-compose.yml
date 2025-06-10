@@ -186,6 +186,18 @@ services:
     volumes:
       - ./trino/etc:/usr/lib/trino/etc:ro
       - ./trino/catalog:/etc/trino/catalog
+  superset:
+    image: superset
+    container_name: superset
+    hostname: superset
+    environment:
+      - SUPERSET_SECRET_KEY=secret
+    ports:
+      - 8088:8088
+    networks:
+      vdt_net:
+    volumes:
+      - superset_data:/app/superset_home
 networks:
   vdt_net:
 
@@ -193,3 +205,4 @@ volumes:
   iceberg_warehouse:
   iceberg_notebooks:
   data:
+  superset_data:

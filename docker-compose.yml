@@ -175,7 +175,17 @@ services:
       /usr/bin/mc policy set public minio/warehouse;
       tail -f /dev/null
       "
-
+  trino:
+    image: trinodb/trino:457
+    container_name: trino
+    hostname: trino
+    ports:
+      - 8383:8080
+    networks:
+      vdt_net:
+    volumes:
+      - ./trino/etc:/usr/lib/trino/etc:ro
+      - ./trino/catalog:/etc/trino/catalog
 networks:
   vdt_net:
 

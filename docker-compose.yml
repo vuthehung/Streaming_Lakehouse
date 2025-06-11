@@ -9,6 +9,80 @@ services:
       - 5000:5000
     volumes:
       - ./flask/data:/python-docker/data
+  postgres:
+    image: postgres:14
+    container_name: postgres
+    hostname: postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 5s
+      retries: 5
+    networks:
+      vdt_net:
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+  webserver:
+    image: airflow
+    container_name: webserver
+    hostname: webserver
+    command: webserver
+    entrypoint: [ '/opt/airflow/script/entrypoint.sh' ]
+    depends_on:
+      - postgres
+    environment:
+      - LOAD_EX=n
+      - EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW_WEBSERVER_SECRET_KEY=''
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - ./scripts/entrypoint.sh:/opt/airflow/script/entrypoint.sh
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - airflow_plugins:/opt/airflow/plugins
+      - airflow_scripts:/opt/airflow/scripts
+      - ./spark/code:/opt/airflow/code
+      - ./airflow/trino:/opt/airflow/trino
+    ports:
+      - "8282:8080"
+    healthcheck:
+      test: [ 'CMD-SHELL', "[ -f /opt/airflow/airflow-webserver.pid ]" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    networks:
+      vdt_net:
+
+  scheduler:
+    image: airflow
+    container_name: scheduler
+    hostname: scheduler
+    depends_on:
+      webserver:
+        condition: service_healthy
+    volumes:
+      - ./scripts/entrypoint.sh:/opt/airflow/script/entrypoint.sh
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - airflow_plugins:/opt/airflow/plugins
+      - airflow_scripts:/opt/airflow/scripts
+      - ./spark/code:/opt/airflow/code
+      - ./airflow/trino:/opt/airflow/trino
+    environment:
+      - LOAD_EX=n
+      - EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW_WEBSERVER_SECRET_KEY=this_is_a_very_secured_key
+    command: bash -c "airflow db upgrade && airflow scheduler"
+    networks:
+      vdt_net:
   broker:
     container_name: broker
     hostname: broker
@@ -202,6 +276,10 @@ networks:
   vdt_net:
 
 volumes:
+  postgres-db-volume:
+  airflow_logs:
+  airflow_plugins:
+  airflow_scripts:
   iceberg_warehouse:
   iceberg_notebooks:
   data:

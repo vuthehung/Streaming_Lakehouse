@@ -5,7 +5,7 @@ import random
 # current_date = datetime.now()
 current_year = 2025
 current_month = 6
-current_day = 9
+current_day = 20
 
 start_date = datetime(current_year, current_month, current_day, 9, 30)
 end_date = datetime(current_year, current_month, current_day, 16, 0)

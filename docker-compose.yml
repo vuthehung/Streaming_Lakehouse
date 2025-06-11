@@ -38,6 +38,7 @@ services:
       - EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
       - AIRFLOW_WEBSERVER_SECRET_KEY=''
+      - AWS_REGION=us-east-1
     logging:
       options:
         max-size: 10m
@@ -45,6 +46,7 @@ services:
     volumes:
       - ./scripts/entrypoint.sh:/opt/airflow/script/entrypoint.sh
       - ./airflow/dags:/opt/airflow/dags
+      - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
       - airflow_logs:/opt/airflow/logs
       - airflow_plugins:/opt/airflow/plugins
       - airflow_scripts:/opt/airflow/scripts
@@ -70,6 +72,7 @@ services:
     volumes:
       - ./scripts/entrypoint.sh:/opt/airflow/script/entrypoint.sh
       - ./airflow/dags:/opt/airflow/dags
+      - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
       - airflow_logs:/opt/airflow/logs
       - airflow_plugins:/opt/airflow/plugins
       - airflow_scripts:/opt/airflow/scripts
@@ -79,7 +82,8 @@ services:
       - LOAD_EX=n
       - EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-      - AIRFLOW_WEBSERVER_SECRET_KEY=this_is_a_very_secured_key
+      - AIRFLOW_WEBSERVER_SECRET_KEY=''
+      - AWS_REGION=us-east-1
     command: bash -c "airflow db upgrade && airflow scheduler"
     networks:
       vdt_net:

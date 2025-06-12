@@ -8,7 +8,7 @@ default_args = {
 }
 
 SOURCE_TABLE = 'iceberg.data_db.trips'
-TARGET_TABLE = 'iceberg.data_db.vendor_trip_summary'
+TARGET_TABLE = 'iceberg.data_db.vendor_trip'
 
 # Câu lệnh CTAS (CREATE TABLE AS SELECT) để tính toán và tạo bảng mới.
 # - COUNT(*): Đếm tổng số chuyến đi.

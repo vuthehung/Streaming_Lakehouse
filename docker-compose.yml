@@ -188,7 +188,7 @@ services:
     ports:
       - "8082:8081"
     networks:
-      - vdt_net
+      vdt_net:
     volumes:
       - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
       - iceberg_warehouse:/home/iceberg/warehouse

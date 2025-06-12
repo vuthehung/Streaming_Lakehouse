@@ -18,9 +18,9 @@ def run_iceberg_test_job():
     ])
 
     data = [
-        (1, "Sản phẩm A", "Thiết bị điện tử"),
-        (2, "Sản phẩm B", "Đồ gia dụng"),
-        (3, "Sản phẩm C", "Thiết bị điện tử")
+        (1, "A", "electronic"),
+        (2, "B", "appliance"),
+        (3, "C", "electronic")
     ]
 
     df = spark.createDataFrame(data, schema)
@@ -28,7 +28,7 @@ def run_iceberg_test_job():
     print("--- Dữ liệu mẫu đã được tạo: ---")
     df.show()
 
-    table_name = "iceberg.data_db.table"
+    table_name = "iceberg.data_db.table1"
 
     print(f"--- Bắt đầu ghi dữ liệu vào bảng: {table_name} ---")
     df.writeTo(table_name).createOrReplace()

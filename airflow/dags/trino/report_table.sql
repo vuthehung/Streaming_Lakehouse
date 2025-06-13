@@ -18,12 +18,16 @@ SELECT
     CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE) AS report_date,
     SUM(quantity) AS total_volume,
     SUM(CAST(price AS DOUBLE) * quantity) AS total_value,
-    year,
-    month
+    ts_year AS year,
+    ts_month AS month
 FROM
     iceberg.stocks.transactions
+WHERE
+    ts_year = year(CURRENT_DATE) AND
+    ts_month = month(CURRENT_DATE) AND
+    ts_day = day(CURRENT_DATE)
 GROUP BY
-    year, month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE);
+    ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE);
 
 -- Bảng tổng hợp các chỉ số giao dịch theo từng mã cổ phiếu hàng ngày
 CREATE TABLE IF NOT EXISTS iceberg.stocks_reporting.daily_stock_summary (
@@ -49,12 +53,16 @@ SELECT
     SUM(quantity) AS total_volume,
     SUM(CAST(price AS DOUBLE) * quantity) AS total_value,
     COUNT(transaction_id) AS transaction_count,
-    year,
-    month
+    ts_year AS year,
+    ts_month AS month
 FROM
     iceberg.stocks.transactions
+WHERE
+    ts_year = year(CURRENT_DATE) AND
+    ts_month = month(CURRENT_DATE) AND
+    ts_day = day(CURRENT_DATE)
 GROUP BY
-    year, month, CAST(ts, 'yyyy-MM-dd') AS DATE), stock_symbol, exchange;
+    ts_year, ts_month, CAST(ts, 'yyyy-MM-dd') AS DATE), stock_symbol, exchange;
 
 -- Bảng tổng hợp số lượng và khối lượng lệnh theo loại Mua/Bán hàng ngày
 CREATE TABLE IF NOT EXISTS iceberg.stocks_reporting.daily_order_type_summary (
@@ -76,12 +84,16 @@ SELECT
     order_type,
     COUNT(transaction_id) AS order_count,
     SUM(quantity) AS total_volume,
-    year,
-    month
+    ts_year AS year,
+    ts_month AS month
 FROM
     iceberg.stocks.transactions
+WHERE
+    ts_year = year(CURRENT_DATE) AND
+    ts_month = month(CURRENT_DATE) AND
+    ts_day = day(CURRENT_DATE)
 GROUP BY
-    year, month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), order_type;
+    ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), order_type;
 
 --Bảng tổng hợp khối lượng và giá trị giao dịch theo từng sàn hàng ngày
 CREATE TABLE IF NOT EXISTS iceberg.stocks_reporting.daily_exchange_summary (
@@ -109,5 +121,9 @@ SELECT
     month
 FROM
     iceberg.stocks.transactions
+WHERE
+    ts_year = year(CURRENT_DATE) AND
+    ts_month = month(CURRENT_DATE) AND
+    ts_day = day(CURRENT_DATE)
 GROUP BY
-    year, month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), exchange;
+    ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), exchange;

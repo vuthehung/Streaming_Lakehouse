@@ -80,12 +80,16 @@ SELECT
     CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE) AS report_date,
     SUM(quantity) AS total_volume,
     SUM(CAST(price AS DOUBLE) * quantity) AS total_value,
-    year,
-    month
+    ts_year AS year,
+    ts_month AS month
 FROM
     iceberg.stocks.transactions
+WHERE
+    ts_year = year(CURRENT_DATE) AND
+    ts_month = month(CURRENT_DATE) AND
+    ts_day = day(CURRENT_DATE)
 GROUP BY
-    year, month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE)
+    ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE)
 '''
 
 SQL_INSERT_daily_stock_summary = '''
@@ -93,16 +97,19 @@ INSERT INTO iceberg.stocks_reporting.daily_stock_summary
 SELECT
     CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE) AS report_date,
     stock_symbol,
-    exchange,
     SUM(quantity) AS total_volume,
     SUM(CAST(price AS DOUBLE) * quantity) AS total_value,
     COUNT(transaction_id) AS transaction_count,
-    year,
-    month
+    ts_year AS year,
+    ts_month AS month
 FROM
     iceberg.stocks.transactions
+WHERE
+    ts_year = year(CURRENT_DATE) AND
+    ts_month = month(CURRENT_DATE) AND
+    ts_day = day(CURRENT_DATE)
 GROUP BY
-    year, month, CAST(ts, 'yyyy-MM-dd') AS DATE), stock_symbol, exchange
+    ts_year, ts_month, CAST(ts, 'yyyy-MM-dd') AS DATE), stock_symbol
 '''
 
 SQL_INSERT_daily_order_type_summary = '''
@@ -112,12 +119,16 @@ SELECT
     order_type,
     COUNT(transaction_id) AS order_count,
     SUM(quantity) AS total_volume,
-    year,
-    month
+    ts_year AS year,
+    ts_month AS month
 FROM
     iceberg.stocks.transactions
+WHERE
+    ts_year = year(CURRENT_DATE) AND
+    ts_month = month(CURRENT_DATE) AND
+    ts_day = day(CURRENT_DATE)
 GROUP BY
-    year, month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), order_type
+    ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), order_type
 '''
 
 SQL_INSERT_daily_exchange_summary = '''
@@ -132,8 +143,12 @@ SELECT
     month
 FROM
     iceberg.stocks.transactions
+WHERE
+    ts_year = year(CURRENT_DATE) AND
+    ts_month = month(CURRENT_DATE) AND
+    ts_day = day(CURRENT_DATE)
 GROUP BY
-    year, month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), exchange
+    ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), exchange
 '''
 
 with DAG(

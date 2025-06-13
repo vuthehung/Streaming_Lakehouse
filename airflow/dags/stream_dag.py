@@ -22,9 +22,9 @@ def delivery_callback(err, msg):
             f"Produced event to topic {msg.topic()}: key = {msg.key().decode('utf-8')}"
         )
 def stream_data_to_kafka():
-    current_year = 2025
-    current_month = 6
-    current_day = 7
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    current_day = datetime.now().day
 
     config = {'bootstrap.servers': 'broker:29092', 'acks': 'all'}
     producer = Producer(config)

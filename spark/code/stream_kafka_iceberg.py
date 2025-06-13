@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+from datetime import datetime
 import time
 
 def run_iceberg_streaming_job():
@@ -12,9 +13,10 @@ def run_iceberg_streaming_job():
     spark.sparkContext.setLogLevel("ERROR")
     print("SparkSession đã được khởi tạo.")
 
-    current_year = 2025
-    current_month = 6
-    current_day = 7
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    current_day = datetime.now().day
+
     transaction_schema = StructType([
         StructField("transaction_id", StringType(), True),
         StructField("timestamp", TimestampType(), True),
@@ -27,13 +29,6 @@ def run_iceberg_streaming_job():
     array_schema = ArrayType(transaction_schema)
 
     topic = f'stock_transactions_{current_year}_{current_month}_{current_day}'
-    # kafka_df = spark \
-    #     .readStream \
-    #     .format("kafka") \
-    #     .option("kafka.bootstrap.servers", "broker:29092") \
-    #     .option("subscribe", topic) \
-    #     .option("startingOffsets", "earliest") \
-    #     .load()
 
     kafka_df = None
     max_retries = 30
@@ -58,7 +53,7 @@ def run_iceberg_streaming_job():
                 print(f"Đang đợi {retry_delay_seconds} giây trước khi thử lại...")
                 time.sleep(retry_delay_seconds)
             else:
-                print(f"Đã hết số lần thử lại ({max_retries}), không thể kết nối Kafka topic.")
+                print(f"Không thể kết nối Kafka topic.")
                 spark.stop()
                 return
 

@@ -51,7 +51,6 @@ services:
       - airflow_plugins:/opt/airflow/plugins
       - airflow_scripts:/opt/airflow/scripts
       - ./spark/code:/opt/airflow/code
-      - ./airflow/trino:/opt/airflow/trino
     ports:
       - "8282:8080"
     healthcheck:
@@ -77,7 +76,6 @@ services:
       - airflow_plugins:/opt/airflow/plugins
       - airflow_scripts:/opt/airflow/scripts
       - ./spark/code:/opt/airflow/code
-      - ./airflow/trino:/opt/airflow/trino
     environment:
       - LOAD_EX=n
       - EXECUTOR=LocalExecutor

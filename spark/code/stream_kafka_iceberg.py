@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
-
+import time
 
 def run_iceberg_streaming_job():
     spark = SparkSession \
@@ -27,13 +27,45 @@ def run_iceberg_streaming_job():
     array_schema = ArrayType(transaction_schema)
 
     topic = f'stock_transactions_{current_year}_{current_month}_{current_day}'
-    kafka_df = spark \
-        .readStream \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", "broker:29092") \
-        .option("subscribe", topic) \
-        .option("startingOffsets", "earliest") \
-        .load()
+    # kafka_df = spark \
+    #     .readStream \
+    #     .format("kafka") \
+    #     .option("kafka.bootstrap.servers", "broker:29092") \
+    #     .option("subscribe", topic) \
+    #     .option("startingOffsets", "earliest") \
+    #     .load()
+
+    kafka_df = None
+    max_retries = 30
+    retry_delay_seconds = 10
+
+    for attempt in range(max_retries):
+        try:
+            print(f"Đang thử kết nối Kafka topic '{topic}', lần thử: {attempt + 1}/{max_retries}")
+            kafka_df = spark \
+                .readStream \
+                .format("kafka") \
+                .option("kafka.bootstrap.servers", "broker:29092") \
+                .option("subscribe", topic) \
+                .option("startingOffsets", "earliest") \
+                .load()
+
+            print(f"Kết nối Kafka topic '{topic}' thành công.")
+            break
+        except Exception as e:
+            print(f"Không thể kết nối Kafka topic '{topic}': {e}")
+            if attempt < max_retries - 1:
+                print(f"Đang đợi {retry_delay_seconds} giây trước khi thử lại...")
+                time.sleep(retry_delay_seconds)
+            else:
+                print(f"Đã hết số lần thử lại ({max_retries}), không thể kết nối Kafka topic.")
+                spark.stop()
+                return
+
+    if kafka_df is None:
+        print("Không thể khởi tạo Kafka DataFrame, dừng job.")
+        spark.stop()
+        return
 
     processed_df = kafka_df \
         .select(col("value").cast("string")) \
@@ -60,7 +92,6 @@ def run_iceberg_streaming_job():
         .toTable(table_name)
 
     query.awaitTermination()
-    print("Micro-batch đã xử lý xong. Dừng SparkSession.")
     spark.stop()
 
 if __name__ == '__main__':

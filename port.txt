@@ -1,0 +1,15 @@
+------ Port ------
+flask: 5000
+kafka-ui: 8080
+airflow-webserver: 8282
+spar-iceberg(spark-master): 8081
+rest-catalog: 8181
+minio: 9000 9001
+trino: 8383
+superset: 8088
+
+------- Login Info ---------
+airflow-webserver: admin - admin
+minio: admin - password
+trino: admin
+superset: admin - admin

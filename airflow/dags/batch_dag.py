@@ -211,4 +211,16 @@ with DAG(
         packages="org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.4.2,org.apache.iceberg:iceberg-aws-bundle:1.4.2,org.apache.hadoop:hadoop-aws:3.3.1,com.amazonaws:aws-java-sdk-bundle:1.11.1026"
     )
 
-    clean_data_job >> create_schema_task >> [[create_daily_market_summary_task >> insert_daily_market_summary_task], [create_daily_stock_summary_task >> insert_daily_stock_summary_task], [create_daily_order_type_summary_task >> insert_daily_order_type_summary_task], [create_daily_exchange_summary_task >> insert_daily_exchange_summary_task]]
+    clean_data_job >> create_schema_task
+
+    create_schema_task >> [
+        create_daily_market_summary_task,
+        create_daily_stock_summary_task,
+        create_daily_order_type_summary_task,
+        create_daily_exchange_summary_task
+    ]
+
+    create_daily_market_summary_task >> insert_daily_market_summary_task
+    create_daily_stock_summary_task >> insert_daily_stock_summary_task
+    create_daily_order_type_summary_task >> insert_daily_order_type_summary_task
+    create_daily_exchange_summary_task >> insert_daily_exchange_summary_task

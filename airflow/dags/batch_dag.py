@@ -9,6 +9,10 @@ default_args = {
     'retries': 3,
     'retry_delay': 300
 }
+current_year = datetime.now().year
+current_month = datetime.now().month
+current_day = datetime.now().day
+
 SQL_CREATE_SCHEMA = 'CREATE SCHEMA IF NOT EXISTS iceberg.stocks_reporting'
 
 SQL_CREATE_TABLE_daily_market_summary = '''
@@ -74,7 +78,7 @@ WITH (
 '''
 
 
-SQL_INSERT_daily_market_summary = '''
+SQL_INSERT_daily_market_summary = f'''
 INSERT INTO iceberg.stocks_reporting.daily_market_summary
 SELECT
     CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE) AS report_date,
@@ -83,36 +87,37 @@ SELECT
     ts_year AS year,
     ts_month AS month
 FROM
-    iceberg.stocks.transactions
+    iceberg.stocks.transactions_cleaned
 WHERE
-    ts_year = year(CURRENT_DATE) AND
-    ts_month = month(CURRENT_DATE) AND
-    ts_day = day(CURRENT_DATE)
+    ts_year = {current_year} AND
+    ts_month = {current_month} AND
+    ts_day = {current_day}
 GROUP BY
     ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE)
 '''
 
-SQL_INSERT_daily_stock_summary = '''
+SQL_INSERT_daily_stock_summary = f'''
 INSERT INTO iceberg.stocks_reporting.daily_stock_summary
 SELECT
     CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE) AS report_date,
     stock_symbol,
+    exchange,
     SUM(quantity) AS total_volume,
     SUM(CAST(price AS DOUBLE) * quantity) AS total_value,
     COUNT(transaction_id) AS transaction_count,
     ts_year AS year,
     ts_month AS month
 FROM
-    iceberg.stocks.transactions
+    iceberg.stocks.transactions_cleaned
 WHERE
-    ts_year = year(CURRENT_DATE) AND
-    ts_month = month(CURRENT_DATE) AND
-    ts_day = day(CURRENT_DATE)
+    ts_year = {current_year} AND
+    ts_month = {current_month} AND
+    ts_day = {current_day}
 GROUP BY
-    ts_year, ts_month, CAST(ts, 'yyyy-MM-dd') AS DATE), stock_symbol
+    ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), stock_symbol, exchange
 '''
 
-SQL_INSERT_daily_order_type_summary = '''
+SQL_INSERT_daily_order_type_summary = f'''
 INSERT INTO iceberg.stocks_reporting.daily_order_type_summary
 SELECT
     CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE) AS report_date,
@@ -122,16 +127,16 @@ SELECT
     ts_year AS year,
     ts_month AS month
 FROM
-    iceberg.stocks.transactions
+    iceberg.stocks.transactions_cleaned
 WHERE
-    ts_year = year(CURRENT_DATE) AND
-    ts_month = month(CURRENT_DATE) AND
-    ts_day = day(CURRENT_DATE)
+    ts_year = {current_year} AND
+    ts_month = {current_month} AND
+    ts_day = {current_day}
 GROUP BY
     ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), order_type
 '''
 
-SQL_INSERT_daily_exchange_summary = '''
+SQL_INSERT_daily_exchange_summary = f'''
 INSERT INTO iceberg.stocks_reporting.daily_exchange_summary
 SELECT
     CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE) AS report_date,
@@ -139,14 +144,14 @@ SELECT
     SUM(quantity) AS total_volume,
     SUM(CAST(price AS DOUBLE) * quantity) AS total_value,
     COUNT(transaction_id) AS transaction_count,
-    year,
-    month
+    ts_year AS year,
+    ts_month AS month
 FROM
-    iceberg.stocks.transactions
+    iceberg.stocks.transactions_cleaned
 WHERE
-    ts_year = year(CURRENT_DATE) AND
-    ts_month = month(CURRENT_DATE) AND
-    ts_day = day(CURRENT_DATE)
+    ts_year = {current_year} AND
+    ts_month = {current_month} AND
+    ts_day = {current_day}
 GROUP BY
     ts_year, ts_month, CAST(format_datetime(ts, 'yyyy-MM-dd') AS DATE), exchange
 '''

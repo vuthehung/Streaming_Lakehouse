@@ -160,6 +160,7 @@ services:
       vdt_net:
     volumes:
       - ./spark/conf/spark-defaults.conf:/opt/spark/conf/spark-defaults.conf:ro
+      - ./spark/code:/home/iceberg/code
       - iceberg_warehouse:/home/iceberg/warehouse
       - iceberg_notebooks:/home/iceberg/notebooks/notebooks
     deploy:

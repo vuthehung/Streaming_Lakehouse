@@ -11,7 +11,6 @@ start_date = datetime(current_year, current_month, current_day, 9, 30)
 end_date = datetime(current_year, current_month, current_day, 16, 0)
 trading_seconds = int((end_date - start_date).total_seconds())
 
-# Define stock information with exchange and initial base price
 stock_info = {
     'AAPL': {'exchange': 'NASDAQ', 'base_price': 150},
     'MSFT': {'exchange': 'NASDAQ', 'base_price': 300},
@@ -51,13 +50,11 @@ transaction_counter = 1
 
 missing_prob = {
     'price': 0.01,
-    'quantity': 0.01,
     'order_type': 0.01,
     'exchange': 0.01
 }
 
 for _ in range(num_records):
-    # Select a random time within market hours
     random_seconds = random.randint(0, trading_seconds)
     timestamp = start_date + timedelta(seconds=random_seconds)
 
@@ -68,16 +65,15 @@ for _ in range(num_records):
     base_price = daily_base_prices[stock_symbol][minute_index]
 
 
-    price = base_price * (1 + random.uniform(-0.01, 0.01))  # ±1% variation
+    price = base_price * (1 + random.uniform(-0.01, 0.01))
     price = None if random.random() < missing_prob['price'] else round(price, 2)
-    quantity = None if random.random() < missing_prob['quantity'] else random.randint(1, 1000)
+    quantity = random.randint(100, 1000)
     order_type = None if random.random() < missing_prob['order_type'] else random.choice(['buy', 'sell'])
     exchange = stock_info[stock_symbol]['exchange']
     exchange = None if random.random() < missing_prob['exchange'] else exchange
     transaction_id = f'tx_{transaction_counter:07d}'
     transaction_counter += 1
 
-    # Create record
     record = {
         'transaction_id': transaction_id,
         'timestamp': timestamp.strftime('%Y-%m-%d %H:%M:%S'),

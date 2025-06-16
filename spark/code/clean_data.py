@@ -14,13 +14,9 @@ def run_bronze_to_silver_job(bronze_table, silver_table):
     spark.sparkContext.setLogLevel("ERROR")
     print(f"SparkSession đã được khởi tạo.")
 
-    # current_year = datetime.now().year
-    # current_month = datetime.now().month
-    # current_day = datetime.now().day
-
-    current_year = 2025
-    current_month = 6
-    current_day = 15
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    current_day = datetime.now().day
 
     bronze_df = spark.read.table(bronze_table)
     filtered_df = bronze_df.filter(

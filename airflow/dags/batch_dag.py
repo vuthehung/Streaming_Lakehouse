@@ -7,7 +7,7 @@ default_args = {
     'owner': 'hungde',
     'start_date': datetime(2025, 6, 7, 9, 30),
     'retries': 3,
-    'retry_delay': 300
+    'retry_delay': 120
 }
 current_year = datetime.now().year
 current_month = datetime.now().month

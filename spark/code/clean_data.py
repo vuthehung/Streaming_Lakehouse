@@ -39,7 +39,7 @@ def run_bronze_to_silver_job(bronze_table, silver_table):
                       WHERE (price IS NOT NULL AND NOT isnan(price))
                         AND (quantity IS NOT NULL AND NOT isnan(quantity))
                         AND (order_type IS NOT NULL AND order_type != '"NaN"')
-                        AND (exchange IS NOT NULL AND exchange != '"NaN"') \
+                        AND (exchange IS NOT NULL AND exchange != '"NaN"')
                       """
     cleaned_df = spark.sql(sql_clean_query)
     print(f"Số bản ghi sau khi loại bỏ NULL và các giá trị không hợp lệ: {cleaned_df.count()}.")

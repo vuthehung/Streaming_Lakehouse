@@ -8,15 +8,19 @@ import argparse
 def run_bronze_to_silver_job(bronze_table, silver_table):
     spark = SparkSession \
         .builder \
-        .appName("PreProcessing") \
+        .appName("CleanData") \
         .getOrCreate()
 
     spark.sparkContext.setLogLevel("ERROR")
     print(f"SparkSession đã được khởi tạo.")
 
-    current_year = datetime.now().year
-    current_month = datetime.now().month
-    current_day = datetime.now().day
+    # current_year = datetime.now().year
+    # current_month = datetime.now().month
+    # current_day = datetime.now().day
+
+    current_year = 2025
+    current_month = 6
+    current_day = 15
 
     bronze_df = spark.read.table(bronze_table)
     filtered_df = bronze_df.filter(
@@ -26,7 +30,7 @@ def run_bronze_to_silver_job(bronze_table, silver_table):
     )
     print(f"Đã đọc {filtered_df.count()} bản ghi.")
     if filtered_df.count() == 0:
-        print("Bảng không có dữ liệu mới. Kết thúc job.")
+        print("Bảng không có dữ liệu. Kết thúc job.")
         spark.stop()
         return
 

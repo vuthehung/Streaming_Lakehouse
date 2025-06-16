@@ -31,7 +31,7 @@ def run_iceberg_streaming_job():
     topic = f'stock_transactions_{current_year}_{current_month}_{current_day}'
 
     kafka_df = None
-    max_retries = 30
+    max_retries = 3
     retry_delay_seconds = 10
 
     for attempt in range(max_retries):
@@ -43,6 +43,7 @@ def run_iceberg_streaming_job():
                 .option("kafka.bootstrap.servers", "broker:29092") \
                 .option("subscribe", topic) \
                 .option("startingOffsets", "earliest") \
+                .option("failOnDataLoss", "false") \
                 .load()
 
             print(f"Kết nối Kafka topic '{topic}' thành công.")
@@ -74,7 +75,7 @@ def run_iceberg_streaming_job():
         .withColumn("ts_day", day(col("timestamp"))) \
         .withColumnRenamed("timestamp", "ts")
 
-    print("Chuẩn bị ghi stream vào bảng Iceberg: iceberg.stocks.transactions")
+    print("Stream vào bảng Iceberg: iceberg.stocks.transactions")
 
     table_name = "iceberg.stocks.transactions"
 

@@ -2,7 +2,7 @@ from confluent_kafka import Producer
 import requests
 import json
 import time
-
+from datetime import datetime
 
 def delivery_callback(err, msg):
     if err:
@@ -12,13 +12,9 @@ def delivery_callback(err, msg):
             f"Produced event to topic {msg.topic()}: key = {msg.key().decode('utf-8')}"
         )
 def stream_data_to_kafka():
-    # current_year = datetime.now().year
-    # current_month = datetime.now().month
-    # current_day = datetime.now().day
-
-    current_year = 2025
-    current_month = 6
-    current_day = 9
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    current_day = datetime.now().day
 
     config = {'bootstrap.servers': 'broker:29092', 'acks': 'all'}
     producer = Producer(config)
@@ -60,7 +56,7 @@ def stream_data_to_kafka():
             print(f"Một lỗi không xác định đã xảy ra: {e}. Dừng lại.")
             break
         print("Hoàn thành 1 chu kỳ.")
-        time.sleep(10)
+        time.sleep(4)
     producer.flush()
 
 if __name__ == '__main__':
